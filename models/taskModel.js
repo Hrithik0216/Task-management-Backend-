@@ -16,8 +16,9 @@ const getTaskById = async (id) => {
         "select * from tasks where id = $1", [id])
 }
 
-const updateTask = async (query, fieldValues) => {
-    const result =await db.query(query, fieldValues)
+const updateTask = async (fieldValues, fields) => {
+    const query = `update tasks set ${fields.join(",")} where id = $${fieldValues.length}`
+    const result = await db.query(query, fieldValues)
     return result.rowCount;
 }
 

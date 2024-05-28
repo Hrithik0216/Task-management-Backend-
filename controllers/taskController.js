@@ -101,9 +101,9 @@ const updateTask = async (req, res) => {
     }
 
     fieldValues.push(id)
-    const query = `update tasks set ${fields.join(",")} where id = $${fieldValues.length}`
+    // const query = `update tasks set ${fields.join(",")} where id = $${fieldValues.length}`
     try {
-        const updatedRows = await taskModel.updateTask(query, fieldValues);
+        const updatedRows = await taskModel.updateTask(fieldValues, fields);
         if (updatedRows === 0) {
             return res.status(404).send(`No task found with the id ${id}`);
         }
