@@ -17,11 +17,10 @@ const createTask = async (req, res) => {
     }
 
     try {
-        await taskModel.createTask(title, description, due_date, priority)
-        res.status(200).send("Inserted a new task")
-    } catch (e) {
-        console.log(e)
-        res.status(500).send("Internal server Error")
+        const newTaskId = await taskModel.createTask(title, description, due_date, priority);
+        res.status(201).json({ id: newTaskId, message: "Inserted a new task" });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
     }
 }
 
@@ -29,13 +28,12 @@ const createTask = async (req, res) => {
 const getAlltasks = async (req, res) => {
     try {
         const { rows } = await taskModel.getAlltasks()
-        if (rows.length === 0) {
-            return res.status(200).send("No tasks. Add new tasks")
+        if (rows.length > 0) {
+            return res.status(200).send(rows);
         }
-        res.status(200).send(rows)
-    } catch (e) {
-        console.error(e)
-        res.status(500).send("Internal server error")
+        res.status(200).send("No tasks. Add new tasks");
+    } catch (error) {
+        res.status(400).json({ error: error.message });
     }
 }
 
@@ -44,12 +42,11 @@ const getTaskById = async (req, res) => {
     try {
         const { rows } = await taskModel.getTaskById(id)
         if (rows.length === 0) {
-            return res.status(200).send(`No task found with the id ${id}`)
+            return res.status(404).send(`No task found with the id ${id}`)
         }
         res.status(200).send(rows)
-    } catch (e) {
-        console.log(e)
-        res.status(500).send("Internal server error")
+    } catch (error) {
+        res.status(400).json({ error: error.message });
     }
 }
 
@@ -97,7 +94,7 @@ const updateTask = async (req, res) => {
         fieldValues.push(completed)
     }
     if (fields.length === 0) {
-        return res.status(200).send("No fields to update")
+        return res.status(400).send("No fields to update")
     }
 
     fieldValues.push(id)
@@ -108,81 +105,83 @@ const updateTask = async (req, res) => {
             return res.status(404).send(`No task found with the id ${id}`);
         }
         res.status(200).send(`Updated task with id ${id} successfully`);
-    } catch (e) {
-        console.log(e)
-        return res.status(500).send("Internal Server Error")
+    } catch (error) {
+        res.status(500).json({ error: error.message }); // 500 Internal Server Error
     }
 }
 
 const deleteTask = async (req, res) => {
     const { id } = req.body;
+    if (!id) {
+        return res.status(400).send("Provide a valid task ID");
+    }
     try {
         const deletedRowCount = await taskModel.deleteTask(id);
         if (deletedRowCount === 0) {
             return res.status(404).send(`No task found with id ${id}`);
         }
         res.status(200).send(`Deleted task with id ${id}`);
-    } catch (e) {
-        console.log(e);
-        res.status(500).send("Internal Server Error");
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 };
 
 
 
+
 const markTasksCompleted = async (req, res) => {
-    const { requiredIds } = req.body
+    const { requiredIds } = req.body;
+
     if (!Array.isArray(requiredIds) || requiredIds.length === 0) {
-        return res.status(400).send("Provide a valid request")
+        return res.status(400).send("Provide a valid request");
     }
     try {
-        // const query = "update tasks set completed = true where id in (" + requiredIds.map((val, index) => "$" + (index + 1)).join(",") + ")"
-        await taskModel.markTasksCompleted(requiredIds)
-        res.status(200).send("Marked the given tasks as completed")
-    } catch (e) {
-        console.log(e)
-        res.status(500).send("Internal server error")
+        await taskModel.markTasksCompleted(requiredIds);
+        res.status(200).send("Marked the given tasks as completed");
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-}
+};
+
 
 const getTasksByPriority = async (req, res) => {
     try {
-        const { rows } = await taskModel.getTasksByPriority()
-        //In very Rare case
+        const { rows } = await taskModel.getTasksByPriority();
+
         if (rows.length === 0) {
-            return res.status(200).send("No tasks")
+            return res.status(404).send("No tasks found");
         }
-        res.status(200).send(rows)
-    } catch (e) {
-        console.log(e)
-        res.status(500).send("Internal Server Error")
+
+        res.status(200).json(rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-}
+};
+
 const getTasksByCompletion = async (req, res) => {
     try {
-        const { rows } = await taskModel.getTasksByCompletion()
-        //In very Rare case
+        const { rows } = await taskModel.getTasksByCompletion();
+
         if (rows.length === 0) {
-            return res.status(200).send("No tasks")
+            return res.status(404).send("No tasks found");
         }
-        res.status(200).send(rows)
-    } catch (e) {
-        console.log(e)
-        res.status(500).send("Internal Server Error")
+
+        res.status(200).json(rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-}
+};
 
 const getTasksByDueDate = async (req, res) => {
     try {
         const { rows } = await taskModel.getTasksByDueDate()
         //In very Rare case
         if (rows.length === 0) {
-            return res.status(200).send("No tasks")
+            return res.status(404).send("No tasks found")
         }
-        res.status(200).send(rows)
-    } catch (e) {
-        console.log(e)
-        res.status(500).send("Internal Server Error")
+        res.status(200).json(rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 }
 
