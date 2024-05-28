@@ -17,7 +17,8 @@ const getTaskById = async (id) => {
 }
 
 const updateTask = async (query, fieldValues) => {
-    return db.query(query, fieldValues)
+    const result =await db.query(query, fieldValues)
+    return result.rowCount;
 }
 
 const deleteTask = async (id) => {
