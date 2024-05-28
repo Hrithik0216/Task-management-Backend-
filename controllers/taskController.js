@@ -1,9 +1,7 @@
-const express = require("express")
-const router = express.Router()
-const db = require("../db")
+const taskModel = require("../models/taskModel")
 
-// 1. Create a new task with a title, description, due date, and priority level.
-router.post("/new-task", async (req, res) => {
+
+const createTask = async (req, res) => {
     const { title, description, due_date, priority } = req.body
 
     const today = new Date()
@@ -19,51 +17,50 @@ router.post("/new-task", async (req, res) => {
     }
 
     try {
-        await db.query(
-            "insert into tasks (title, description, due_date, priority) values ($1, $2, $3, $4)",
-            [title, description, due_date, priority]
-        )
+        await taskModel.createTask(title, description, due_date, priority)
         res.status(200).send("Inserted a new task")
     } catch (e) {
         console.log(e)
         res.status(500).send("Internal server Error")
     }
-})
+}
 
-// 2. Retrieve a list of all tasks.
-router.get("/all-tasks", async (req, res) => {
+
+const getAlltasks = async (req, res) => {
     try {
-        // const rows = await db.query("SELECT * FROM tasks")
-        // const { rowCount } = await db.query("SELECT * FROM tasks")
-        // res.status(200).json({ message: rowCount })
-        const { rows } = await db.query("select * from tasks")
-        res.status(200).json(rows)
-
+        const { rows } = await taskModel.getAlltasks()
+        if (rows.length === 0) {
+            return res.status(200).send("No tasks. Add new tasks")
+        }
+        res.status(200).send(rows)
     } catch (e) {
         console.error(e)
         res.status(500).send("Internal server error")
     }
-})
+}
 
-// 3. Retrieve details of a specific task by its ID.
-router.get("/get-a-task", async (req, res) => {
+const getTaskById = async (req, res) => {
     const { id } = req.body
     try {
-        const { rows } = await db.query(
-            "select * from tasks where id = $1", [id])
+        const { rows } = await taskModel.getTaskById(id)
+        if (rows.length === 0) {
+            return res.status(200).send(`No task found with the id ${id}`)
+        }
         res.status(200).send(rows)
     } catch (e) {
         console.log(e)
         res.status(500).send("Internal server error")
     }
-})
+}
 
-// 4. Update information about an existing task.
-router.post("/update-a-task", async (req, res) => {
+const updateTask = async (req, res) => {
     const { id, title, description, due_date, priority, completed } = req.body
 
     let fields = []
     let fieldValues = []
+    if (!id) {
+        return res.status(400).send("Provide the ID")
+    }
     if (title !== undefined) {
         if (!title || title.trim() === "") {
             return res.status(400).send("Task title cannot be empty")
@@ -105,75 +102,88 @@ router.post("/update-a-task", async (req, res) => {
 
     fieldValues.push(id)
     const query = `update tasks set ${fields.join(",")} where id = $${fieldValues.length}`
-
     try {
-        await db.query(query, fieldValues)
-        res.status(200).send(`Updated ${id} task Succesfully`)
+        const updatedRows = await taskModel.updateTask(query, fieldValues);
+        if (updatedRows === 0) {
+            return res.status(404).send(`No task found with the id ${id}`);
+        }
+        res.status(200).send(`Updated task with id ${id} successfully`);
     } catch (e) {
         console.log(e)
         return res.status(500).send("Internal Server Error")
     }
-})
+}
 
-// 5. Delete a task.
-router.delete("/delete-a-task", async (req, res) => {
-    const { id } = req.body
+const deleteTask = async (req, res) => {
+    const { id } = req.body;
     try {
-        const data = await db.query('delete from tasks where id = $1', [id])
-        res.status(200).send(`Deleted the task ${id}`)
+        const deletedRowCount = await taskModel.deleteTask(id);
+        if (deletedRowCount === 0) {
+            return res.status(404).send(`No task found with id ${id}`);
+        }
+        res.status(200).send(`Deleted task with id ${id}`);
     } catch (e) {
-        console.log(e)
-        res.status(200).send("Internal Server Error")
+        console.log(e);
+        res.status(500).send("Internal Server Error");
     }
-})
+};
 
-// 6. Mark tasks as completed.
-router.post("/mark-tasks-completed", async (req, res) => {
+
+
+const markTasksCompleted = async (req, res) => {
     const { requiredIds } = req.body
     if (!Array.isArray(requiredIds) || requiredIds.length === 0) {
         return res.status(400).send("Provide a valid request")
     }
     try {
-        const query = "update tasks set completed = true where id in (" + requiredIds.map((val, index) => "$" + (index + 1)).join(",") + ")"
-        await db.query(query, requiredIds)
+        // const query = "update tasks set completed = true where id in (" + requiredIds.map((val, index) => "$" + (index + 1)).join(",") + ")"
+        await taskModel.markTasksCompleted(requiredIds)
         res.status(200).send("Marked the given tasks as completed")
     } catch (e) {
         console.log(e)
         res.status(500).send("Internal server error")
     }
-})
+}
 
-// 7.Filter tasks based on priority level or completion status.
-router.get("/based-on-priority", async (req, res) => {
+const getTasksByPriority = async (req, res) => {
     try {
-        const { rows } = await db.query("select * from tasks order by priority desc")
+        const { rows } = await taskModel.getTasksByPriority()
+        //In very Rare case
+        if (rows.length === 0) {
+            return res.status(200).send("No tasks")
+        }
         res.status(200).send(rows)
     } catch (e) {
         console.log(e)
         res.status(500).send("Internal Server Error")
     }
-})
-router.get("/based-on-completed", async (req, res) => {
-
+}
+const getTasksByCompletion = async (req, res) => {
     try {
-        const { rows } = await db.query("select * from tasks where completed = true order by completed asc")
+        const { rows } = await taskModel.getTasksByCompletion()
+        //In very Rare case
+        if (rows.length === 0) {
+            return res.status(200).send("No tasks")
+        }
         res.status(200).send(rows)
     } catch (e) {
         console.log(e)
         res.status(500).send("Internal Server Error")
     }
-})
+}
 
-// 8.Sort tasks by due date or priority level.
-router.get("/based-on-duedate", async (req, res) => {
+const getTasksByDueDate = async (req, res) => {
     try {
-        const { rows } = await db.query("select * from tasks order by due_date asc")
+        const { rows } = await taskModel.getTasksByDueDate()
+        //In very Rare case
+        if (rows.length === 0) {
+            return res.status(200).send("No tasks")
+        }
         res.status(200).send(rows)
     } catch (e) {
         console.log(e)
         res.status(500).send("Internal Server Error")
     }
-})
+}
 
-
-module.exports = router
+module.exports = { createTask, getAlltasks, getTaskById, updateTask, deleteTask, markTasksCompleted, getTasksByPriority, getTasksByCompletion, getTasksByDueDate }
