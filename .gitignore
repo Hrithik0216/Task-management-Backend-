@@ -1,15 +1,9 @@
 # Logs
 README.txt
 
-# Compiled binary addons (https://nodejs.org/api/addons.html)
-build/Release
 
 # Dependency directories
 node_modules/
-jspm_packages/
-
-# Snowpack dependency directory (https://snowpack.dev/)
-web_modules/
 
 # Optional npm cache directory
 .npm
