@@ -18,7 +18,7 @@ class Task {
         if (due <= today) {
             throw new Error("Due date must be in the future");
         }
-        if (priority < 1 || priority > 5 || !priority) {
+        if (priority < 1 || priority > 5) {
             throw new Error("It is necessary to provide and it must be between 1 and 5. ");
         }
         if (!title || title.trim() === "") {
