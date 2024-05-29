@@ -19,12 +19,12 @@ const getTaskById = async (id) => {
 const updateTask = async (fieldValues, fields) => {
     const query = `update tasks set ${fields.join(",")} where id = $${fieldValues.length}`
     const result = await db.query(query, fieldValues)
-    return result.rowCount;
+    return result.rowCount
 }
 
 const deleteTask = async (id) => {
-    const result = await db.query('delete from tasks where id = $1', [id]);
-    return result.rowCount;
+    const result = await db.query('delete from tasks where id = $1', [id])
+    return result.rowCount
 }
 
 const markTasksCompleted = async (requiredIds) => {
