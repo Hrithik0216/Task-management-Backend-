@@ -12,26 +12,26 @@ class Task {
 
     //Working
     static async create(title, description, dueDate, priority) {
-        const today = new Date();
-        const due = new Date(dueDate);
+        const today = new Date()
+        const due = new Date(dueDate)
 
         if (due <= today) {
-            throw new Error("Due date must be in the future");
+            throw new Error("Due date must be in the future")
         }
         if (priority < 1 || priority > 5) {
-            throw new Error("It is necessary to provide and it must be between 1 and 5. ");
+            throw new Error("It is necessary to provide and it must be between 1 and 5. ")
         }
         if (!title || title.trim() === "") {
-            throw new Error("Task title cannot be empty");
+            throw new Error("Task title cannot be empty")
         }
 
         const result = await db.query(
             "INSERT INTO tasks (title, description, due_date, priority) VALUES ($1, $2, $3, $4) RETURNING id",
             [title, description, dueDate, priority]
-        );
+        )
 
-        const id = result.rows[0].id;
-        return new Task(title, description, dueDate, priority, false, id);
+        const id = result.rows[0].id
+        return new Task(title, description, dueDate, priority, false, id)
     }
 
 
