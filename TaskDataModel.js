@@ -87,7 +87,7 @@ class Task {
     //working
     static async findByDueDate() {
         const query = "SELECT * FROM tasks ORDER BY due_date ASC"
-        console.log("Query:", query) // Log the query
+        // console.log("Query:", query) 
         const { rows } = await db.query(query)
         return rows.map(row => new Task(row.title, row.description, row.due_date, row.priority, row.completed, row.id))
     }
