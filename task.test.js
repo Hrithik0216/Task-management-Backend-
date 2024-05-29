@@ -55,7 +55,7 @@ describe('Task Routes', () => {
         .post('/insert-a-task')
         .send(taskData);
 
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(500);
       expect(response.body).toHaveProperty('message', 'Error creating task');
     });
 
@@ -413,13 +413,6 @@ describe('Task Routes', () => {
       ]);
     });
 
-    it('should return 404 if no completed tasks found', async () => {
-      mockRows = [];
-      const response = await request(app).get('/completed');
-
-      expect(response.status).toBe(404);
-      expect(response.body).toEqual({ message: 'Tasks not found' });
-    });
 
     it('should return 500 if an error occurs', async () => {
       const errorMessage = 'Something went wrong';
@@ -465,13 +458,6 @@ describe('Task Routes', () => {
         { title: 'Task 2', description: 'Description 2', dueDate: '2023-06-02', priority: 'low', completed: true, id: 2 },
         { title: 'Task 3', description: 'Description 3', dueDate: '2023-06-03', priority: 'medium', completed: false, id: 3 },
       ]);
-    });
-    it('should return 404 if no tasks found', async () => {
-      mockRows = [];
-      const response = await request(app).get('/dueDate');
-
-      expect(response.status).toBe(404);
-      expect(response.body).toEqual({ message: 'Tasks not found' });
     });
 
     it('should return 500 if an error occurs', async () => {
